@@ -10,7 +10,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.swing.text.html.Option;
 import java.util.List;
 
 @Controller
@@ -37,7 +39,7 @@ public class ArticleController {
         //System.out.println(saved.toString());
         log.info(saved.toString());
 
-        return "redi";
+        return "redirect:/articles/" + saved.getId();
     }
 
     @GetMapping("/articles/{id}")
@@ -66,4 +68,37 @@ public class ArticleController {
         return "articles/index";
     }
 
+    @GetMapping("/articles/{id}/edit")
+    public String edit(@PathVariable Long id, Model model){
+        Article articleEntity = articleRepository.findById(id).orElse(null);
+        model.addAttribute("article" , articleEntity);
+        return "articles/edit";
+    }
+
+
+    @PostMapping("/articles/update")
+    public String update(Articleform form){
+        log.info(form.toString());
+
+        Article articleEntity= form.toEntity();
+
+        Article target = articleRepository.findById(articleEntity.getId()).orElse(null);
+        if (target != null){
+            articleRepository.save(articleEntity);
+        }
+
+        return "redirect:/articles/" + articleEntity.getId();
+    }
+
+    @GetMapping("/articles/{id}/delete")
+    public String delete(@PathVariable Long id, RedirectAttributes rttr){
+        Article target = articleRepository.findById(id).orElse(null);
+        log.info(target.toString());
+        if(target != null){
+            articleRepository.delete(target);
+            rttr.addFlashAttribute("msg", "삭제가 완료되었습니다.");
+        }
+        log.info(target.toString());
+        return "redirect:/articles";
+    }
 }
